@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CurrencyTracker.Downloader": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

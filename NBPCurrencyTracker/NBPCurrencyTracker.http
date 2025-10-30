@@ -1,0 +1,6 @@
+@NBPCurrencyTracker_HostAddress = http://localhost:5096
+
+GET {{NBPCurrencyTracker_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
