@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36616.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyTracker.API", "NBPCurrencyTracker\CurrencyTracker.API.csproj", "{BD80E6E9-52A0-44CD-AF6F-51C39EA37741}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyTracker.API", "CurrencyTracker.API\CurrencyTracker.API.csproj", "{BD80E6E9-52A0-44CD-AF6F-51C39EA37741}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "CurrencyTracker.Database", "APIDatabase\CurrencyTracker.Database.sqlproj", "{155B99BC-E64B-47EE-A382-C08A5265583C}"
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "CurrencyTracker.Database", "CurrencyTracker.Database\CurrencyTracker.Database.sqlproj", "{155B99BC-E64B-47EE-A382-C08A5265583C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyTracker.Core", "CurrencyTracker.Core\CurrencyTracker.Core.csproj", "{3469A018-2FE3-D140-DF96-16F01867D466}"
 EndProject
