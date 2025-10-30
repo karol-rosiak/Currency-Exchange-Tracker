@@ -1,6 +1,20 @@
 @NBPCurrencyTracker_HostAddress = http://localhost:5096
 
-GET {{NBPCurrencyTracker_HostAddress}}/weatherforecast/
+# GET Exchange Rate
+GET {{NBPCurrencyTracker_HostAddress}}/ExchangeRate?baseCurrencyCode=USD&targetCurrencyCode=EUR&date=2025-10-30
 Accept: application/json
 
 ###
+
+# POST Exchange Rate
+POST {{NBPCurrencyTracker_HostAddress}}/ExchangeRate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "baseCode": "PLN",
+  "targetCode": "EUR",
+  "date": "2025-10-30",
+  "ask": "0.1234",
+  "bid": 0.9456
+}

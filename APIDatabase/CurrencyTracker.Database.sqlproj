@@ -13,7 +13,7 @@
     </RootPath>
     <RootNamespace>APIDatabase</RootNamespace>
     <AssemblyName>APIDatabase</AssemblyName>
-    <ModelCollation>1033, CI</ModelCollation>
+    <ModelCollation>1045,CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -22,6 +22,7 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>Polish_100_CI_AS</DefaultCollation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -64,5 +65,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="APIDatabase.publish.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="CurrencyTracker.Database.refactorlog" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Script.PostDeploymentData.sql" />
   </ItemGroup>
 </Project>

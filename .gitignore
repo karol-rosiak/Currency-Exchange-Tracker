@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/NBPCurrencyTracker/appsettings.Development.json
+/CurrencyTracker.Downloader/appsettings.Development.json
+/CurrencyTracker.Data/ScaffoldDbContext.Development.ps1

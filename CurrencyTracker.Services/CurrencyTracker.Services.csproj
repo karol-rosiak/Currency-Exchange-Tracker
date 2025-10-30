@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CurrencyTracker.Core\CurrencyTracker.Core.csproj" />
+    <ProjectReference Include="..\CurrencyTracker.Data\CurrencyTracker.Data.csproj" />
   </ItemGroup>
 
 </Project>

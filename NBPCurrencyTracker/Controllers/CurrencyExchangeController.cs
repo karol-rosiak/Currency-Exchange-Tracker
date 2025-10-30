@@ -1,30 +1,82 @@
-//using Microsoft.AspNetCore.Mvc;
-//using CurrencyTracker.Enums;
-//using CurrencyTracker.Models.API;
+using AutoMapper;
+using CurrencyTracker.Services.Services;
+using Microsoft.AspNetCore.Mvc;
 
-//namespace NBPCurrencyTracker.Controllers
-//{
-//    [ApiController]
-//    [Route("[controller]")]
-//    public class CurrencyExchangeController : ControllerBase
-//    {
-//        private readonly ILogger<CurrencyExchangeController> _logger;
+using ApiModels = CurrencyTracker.API.Models;
 
-//        public CurrencyExchangeController(ILogger<CurrencyExchangeController> logger)
-//        {
-//            _logger = logger;
-//        }
+namespace CurrencyTracker.API.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class CurrencyExchangeController : ControllerBase
+    {
+        private readonly ILogger<CurrencyExchangeController> _logger;
+        private readonly IMapper _mapper;
+        private ICurrencyExchangeService _currencyExchangeService;
+        private ICurrencyService _currencyService;
+        private HashSet<string> _avaliableCurrencies = new HashSet<string>();
 
-//        [HttpGet(Name = "ExchangeRate")]
-//        public CurrencyExchangeRate Get([FromQuery] CurrencyEnum currency, [FromQuery] DateTime date)
-//        {
-//            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-//            {
-//                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-//                TemperatureC = Random.Shared.Next(-20, 55),
-//                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-//            })
-//            .ToArray();
-//        }
-//    }
-//}
+        public CurrencyExchangeController(ILogger<CurrencyExchangeController> logger, IMapper mapper, ICurrencyExchangeService currencyExchangeService, ICurrencyService currencyService)
+        {
+            _logger = logger;
+            _mapper = mapper;
+            _currencyExchangeService = currencyExchangeService;
+            _currencyService = currencyService;
+        }
+
+        [HttpGet(Name = "ExchangeRate")]
+        public async Task<ActionResult<ApiModels.CurrencyExchangeRate>> Get([FromQuery]  string baseCurrencyCode, [FromQuery] string targetCurrencyCode, [FromQuery] DateOnly date)
+        {
+            if (string.IsNullOrEmpty(baseCurrencyCode) || string.IsNullOrEmpty(targetCurrencyCode))
+            {
+                return BadRequest("Code is empty");
+            }
+
+            if(_avaliableCurrencies.Count == 0)
+            {
+                _avaliableCurrencies = await _currencyService.GetCurrenciesAsync() ?? new HashSet<string>();
+            }
+            
+            if (!_avaliableCurrencies.Contains(baseCurrencyCode) || !_avaliableCurrencies.Contains(targetCurrencyCode))
+            {
+                return BadRequest("Wrong currency code");
+            }
+
+            Services.Models.CurrencyExchangeRate? result = await _currencyExchangeService.GetExchangeRateAsync(baseCurrencyCode, targetCurrencyCode, date);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            ApiModels.CurrencyExchangeRate resultMapped = _mapper.Map<ApiModels.CurrencyExchangeRate>(result);
+
+            return Ok(resultMapped);
+        }
+
+        [HttpPost(Name = "ExchangeRate")]
+        public async Task<ActionResult<ApiModels.CurrencyExchangeRate>> Post([FromBody] ApiModels.CurrencyExchangeRate currencyExchangeRate)
+        {
+            if (_avaliableCurrencies.Count == 0)
+            {
+                _avaliableCurrencies = await _currencyService.GetCurrenciesAsync() ?? new HashSet<string>();
+            }
+
+            if (!_avaliableCurrencies.Contains(currencyExchangeRate.BaseCode) || !_avaliableCurrencies.Contains(currencyExchangeRate.TargetCode))
+            {
+                return BadRequest("Wrong currency code");
+            }
+
+            var exchangeRateMapped = _mapper.Map<ApiModels.CurrencyExchangeRate, Services.Models.CurrencyExchangeRate>(currencyExchangeRate);
+
+            bool result = await _currencyExchangeService.AddExchangeRateAsync(exchangeRateMapped);
+
+            if (!result)
+            {
+                return NotFound("Error while adding exchange rate");
+            }
+
+            return Ok();
+        }
+    }
+}

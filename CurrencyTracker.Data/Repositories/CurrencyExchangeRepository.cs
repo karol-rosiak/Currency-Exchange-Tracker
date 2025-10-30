@@ -1,16 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using CurrencyTracker.Database.Data;
-using CurrencyTracker.Database.Models;
-using CurrencyTracker.Enums;
-using CurrencyTracker.Helpers;
-using CurrencyTracker.Models;
-using System.Security.Cryptography;
-using System.Threading.Tasks;
+using CurrencyTracker.Data.Context;
+using CurrencyTracker.Data.Entities;
 
-namespace CurrencyTracker.Database.Repositories
+
+namespace CurrencyTracker.DataDatabase.Repositories
 {
-    public class CurrencyExchangeRepository
+    public class CurrencyExchangeRepository : ICurrencyExchangeRepository
     {
         private readonly CurrencyDbContext _context;
 
@@ -19,52 +14,28 @@ namespace CurrencyTracker.Database.Repositories
             _context = context;
         }
 
-        public async Task<API.Models.CurrencyExchangeRate?> GetCurrencyExchange(CurrencyEnum currency, DateOnly date)
+        public async Task<CurrencyExchangeRate?> GetCurrencyExchange(string baseCurrencyCode, string targetCurrencyCode, DateOnly date)
         {
-            API.Database.Models.CurrencyRate? exchangeRate = await _context.CurrencyRates.Where(c => c.Currency.Value == (int)currency && c.ExchangeDate == date).FirstOrDefaultAsync();
-            if (exchangeRate == null)
+            return await _context.CurrencyExchangeRates
+                .Where(c => c.BaseCurrency.Code == baseCurrencyCode && c.ExchangeDate == date)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> AddExchangeRate(CurrencyExchangeRate exchangeRate)
+        {
+            try
             {
-                return null;
+                _context.CurrencyExchangeRates.Add(exchangeRate);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // TODO: add error logging here
+                return false;
             }
 
-            // change to a mapper 
-            return new API.Models.CurrencyExchangeRate
-            {
-                Ask = exchangeRate.Ask,
-                Bid = exchangeRate.Bid,
-                Code = exchangeRate.Currency.Code,
-                Currency = exchangeRate.Currency.Name,
-                ExchangeDate = exchangeRate.ExchangeDate
-            };
+            return true;
         }
 
-        // Add user
-        public async Task AddExchangeRate(API.Models.CurrencyExchangeRate exchangeRate)
-        {
-            Database.Models.CurrencyRate exchangeRateDB = new()
-            {
-                Ask = exchangeRate.Ask ?? 0,
-                Bid = exchangeRate.Bid ?? 0,
-                ExchangeDate = exchangeRate.ExchangeDate ?? DateOnly.MinValue,
-                CreateDate = DateTime.Now,
-            };
-
-            _context.CurrencyRates.Add(exchangeRateDB);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateAsync(API.Models.CurrencyExchangeRate exchangeRate)
-        {
-            Database.Models.CurrencyRate exchangeRateDB = new()
-            {
-                Ask = exchangeRate.Ask ?? 0,
-                Bid = exchangeRate.Bid ?? 0,
-                ExchangeDate = exchangeRate.ExchangeDate ?? DateOnly.MinValue,
-                CreateDate = DateTime.Now,
-            };
-
-            _context.CurrencyRates.Update(exchangeRateDB);
-            await _context.SaveChangesAsync();
-        }
     }
 }

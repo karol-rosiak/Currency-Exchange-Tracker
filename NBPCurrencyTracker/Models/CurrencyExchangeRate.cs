@@ -1,16 +1,30 @@
-﻿namespace CurrencyTracker.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CurrencyTracker.API.Models
 {
     public class CurrencyExchangeRate
     {
-        public string? Currency  { get; set; }
+        public string? BaseName { get; set; } = string.Empty;
 
-        public string? Code { get; set; }
+        [Required(ErrorMessage = "Base currency code is required")]
+        [StringLength(3)]
+        public string BaseCode { get; set; } = string.Empty;
 
-        public decimal? Ask { get; set; }
+        public string? TargetName { get; set; } = string.Empty;
 
-        public decimal? Bid { get; set; }
+        [Required(ErrorMessage = "Target currency code is required")]
+        [StringLength(3)]
+        public string TargetCode { get; set; } = string.Empty;
 
-        public DateOnly? ExchangeDate { get; set; }
+        [Required(ErrorMessage = "Ask value is required")]
+        public decimal Ask { get; set; }
+
+        [Required(ErrorMessage = "Bid value is required")]
+        public decimal Bid { get; set; }
+
+        [DataType(DataType.Date)]
+        [Required(ErrorMessage = "Exchange date is required")]
+        public DateOnly ExchangeDate { get; set; }
 
     }
 }
