@@ -3,7 +3,11 @@ using CurrencyTracker.Data.Context;
 using CurrencyTracker.DataDatabase.Repositories;
 using CurrencyTracker.Services;
 using CurrencyTracker.Services.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ApiModel = CurrencyTracker.API;
 using ServiceModel = CurrencyTracker.Services;
 
@@ -12,21 +16,53 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-#region API
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-#endregion
-
 #region Database
 
 var connectionString = builder.Configuration.GetConnectionString("APIDatabase");
 
 builder.Services.AddDbContext<CurrencyDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddDbContext<IdentityAppDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+#endregion
+
+#region Authentication
+
+var jwtSection = builder.Configuration.GetSection("Jwt"); // TODO: Move key to user-secrets
+var jwtKey = jwtSection["Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    throw new InvalidOperationException("JWT Key is missing. Please configure Jwt:Key in appsettings.json");
+}
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<IdentityAppDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    var jwt = builder.Configuration.GetSection("Jwt");
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwt["Issuer"],
+        ValidAudience = jwt["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
+
 
 #endregion
 
@@ -77,6 +113,15 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 #endregion
 
+#region API
+
+builder.Services.AddAuthorization();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+#endregion
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -88,6 +133,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
