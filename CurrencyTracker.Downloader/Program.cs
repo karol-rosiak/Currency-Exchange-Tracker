@@ -1,17 +1,19 @@
 ﻿using AutoMapper;
 using CurrencyTracker.Data.Context;
+using CurrencyTracker.DataDatabase.Repositories;
 using CurrencyTracker.Downloader.Jobs;
 using CurrencyTracker.Downloader.Jobs.Settings;
 using CurrencyTracker.Services;
 using CurrencyTracker.Services.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quartz;
-
+using ServiceModel = CurrencyTracker.Services;
 
 var configuration = new ConfigurationBuilder()
                .SetBasePath(AppContext.BaseDirectory)
@@ -36,7 +38,14 @@ var host = Host.CreateDefaultBuilder(args)
                         resolver.GetRequiredService<IOptions<CurrencyExchangeJobSettings>>().Value);
 
                     services.AddHttpClient();
+                    #region redis
 
+                    services.AddStackExchangeRedisCache(options =>
+                    {
+                        options.Configuration = configuration.GetConnectionString("Redis");
+                    });
+
+                    #endregion
                     services.AddApplicationInsightsTelemetryWorkerService();
                     services.AddLogging(logging =>
                     {
@@ -53,15 +62,21 @@ var host = Host.CreateDefaultBuilder(args)
 
                     services.AddQuartz(q =>
                     {
-                        var settings = configuration.GetSection("CurrencyJobSettings").Get<CurrencyExchangeJobSettings>();
-                        var jobKey = new JobKey("CurrencyJob");
+                        CurrencyExchangeJobSettings settings = configuration.GetSection("CurrencyJobSettings").Get<CurrencyExchangeJobSettings>() ?? new();
+                        JobKey jobKey = new JobKey("CurrencyJob");
 
                         q.AddJob<CurrencyExchangeJob>(opts => opts.WithIdentity(jobKey));
 
                         q.AddTrigger(opts => opts
                             .ForJob(jobKey)
                             .WithIdentity("CurrencyJobTrigger")
-                            .WithCronSchedule($"{settings.Minute} {settings.Hour} * * 1-5")); // Weekdays only
+                            .WithCronSchedule($"0 {settings.Minute} {settings.Hour} ? * 1-5"));
+
+                        //for testing
+                        q.AddTrigger(opts => opts
+                            .ForJob(jobKey)
+                            .WithIdentity("MyImmediateTrigger")
+                            .StartNow());
                     });
 
                     services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
@@ -75,6 +90,24 @@ var host = Host.CreateDefaultBuilder(args)
                     services.AddDbContext<CurrencyDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
+                    services.AddSingleton<AutoMapper.IConfigurationProvider>(sp =>
+                    {
+                        var cfgExpr = new MapperConfigurationExpression();
+
+                        cfgExpr.AddMaps(
+                        [
+                            typeof(Program).Assembly,
+                            typeof(ServiceModel.Mappers.CurrencyExchangeProfile).Assembly,
+                            typeof(ServiceModel.Mappers.CurrencyProfile).Assembly,
+                        ]);
+
+                        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+                        return new MapperConfiguration(cfgExpr, loggerFactory);
+                    });
+
+                    services.AddScoped<ICurrencyExchangeRepository, CurrencyExchangeRepository>();
+                    services.AddScoped<ICurrencyRepository, CurrencyRepository>();
                     services.AddScoped<ICurrencyExchangeService, CurrencyExchangeService>();
                     services.AddScoped<ICurrencyService, CurrencyService>();
                 })
