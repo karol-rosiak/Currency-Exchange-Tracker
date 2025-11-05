@@ -1,5 +1,6 @@
 using AutoMapper;
 using CurrencyTracker.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 using ApiModels = CurrencyTracker.API.Models;
@@ -24,8 +25,9 @@ namespace CurrencyTracker.API.Controllers
             _currencyService = currencyService;
         }
 
-        [HttpGet(Name = "ExchangeRate")]
-        public async Task<ActionResult<ApiModels.CurrencyExchangeRate>> Get([FromQuery]  string baseCurrencyCode, [FromQuery] string targetCurrencyCode, [FromQuery] DateOnly date)
+        [Authorize]
+        [HttpGet(Name = "ExchangeRate/")]
+        public async Task<ActionResult<ApiModels.CurrencyExchangeRate>> Get(string baseCurrencyCode, [FromQuery] string targetCurrencyCode, [FromQuery] DateOnly date)
         {
             if (string.IsNullOrEmpty(baseCurrencyCode) || string.IsNullOrEmpty(targetCurrencyCode))
             {
@@ -54,6 +56,7 @@ namespace CurrencyTracker.API.Controllers
             return Ok(resultMapped);
         }
 
+        [Authorize]
         [HttpPost(Name = "ExchangeRate")]
         public async Task<ActionResult<ApiModels.CurrencyExchangeRate>> Post([FromBody] ApiModels.CurrencyExchangeRate currencyExchangeRate)
         {
