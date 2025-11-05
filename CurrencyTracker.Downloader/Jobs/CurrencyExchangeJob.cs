@@ -34,7 +34,10 @@ namespace CurrencyTracker.Downloader.Jobs
         {
             _logger.LogInformation("CurrencyJob started.");
 
-            var currencies = await _currencyService.GetCurrenciesAsync();
+            HashSet<string>? currencies = await _currencyService.GetCurrenciesAsync();
+
+            currencies?.Remove("PLN");
+
             if (currencies == null)
             {
                 _logger.LogWarning("No currencies found in the database.");
@@ -68,6 +71,7 @@ namespace CurrencyTracker.Downloader.Jobs
                     if (currencyExchangeRate?.Rates?.Length > 0)
                     {
                         ServicesModels.CurrencyExchangeRate currencyExchangeRateMapped = _mapper.Map<ServicesModels.CurrencyExchangeRate>(currencyExchangeRate);
+                        currencyExchangeRateMapped.BaseCode = "PLN"; // TODO: Find a better way so it's not hard coded
                         await _currencyExchangeService.AddExchangeRateAsync(currencyExchangeRateMapped);
                         _logger.LogInformation($"[{currencyCode}] Saved rate for {currencyExchangeRate.Rates[0].EffectiveDate}");
                         success = true;

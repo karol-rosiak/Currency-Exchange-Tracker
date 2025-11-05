@@ -146,7 +146,6 @@ builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "CurrencyTracker_"; // optional prefix for keys
 });
 
 #endregion

@@ -16,3 +16,6 @@ Scaffold-DbContext $ConnectionString $Provider `
     -StartupProject $StartupProject `
     -Force `
     -NoOnConfiguring
+
+    
+ef migrations add InitIdentity --context AuthDbContext --project CurrencyTracker.Data --startup-project CurrencyTracker.API
