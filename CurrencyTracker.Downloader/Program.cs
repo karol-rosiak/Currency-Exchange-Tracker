@@ -40,19 +40,15 @@ var host = Host.CreateDefaultBuilder(args)
                     services.AddApplicationInsightsTelemetryWorkerService();
                     services.AddLogging(logging =>
                     {
-                        logging.AddConsole();
-
-                        // Optional toggle via appsettings.json
-                        bool includeConsole = configuration.GetValue<bool>("Logging:IncludeConsole");
-                        if (!includeConsole)
+                        if (context.HostingEnvironment.IsDevelopment())
                         {
-                            logging.ClearProviders(); 
+                            logging.AddConsole();
                         }
 
                         logging.AddApplicationInsights(
-                            configureTelemetryConfiguration: (config) =>
-                                config.ConnectionString = configuration["ApplicationInsights:ConnectionString"],
-                            configureApplicationInsightsLoggerOptions: (options) => { });
+                           configureTelemetryConfiguration: (config) =>
+                               config.ConnectionString = configuration["ApplicationInsights:ConnectionString"],
+                           configureApplicationInsightsLoggerOptions: (options) => { });
                     });
 
                     services.AddQuartz(q =>

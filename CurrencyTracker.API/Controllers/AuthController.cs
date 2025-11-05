@@ -1,4 +1,5 @@
 ﻿using CurrencyTracker.Core.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -8,6 +9,7 @@ using System.Text;
 
 namespace MyApi.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -21,6 +23,7 @@ namespace MyApi.Controllers
             _config = config;
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(string email, string password)
         {
@@ -33,6 +36,7 @@ namespace MyApi.Controllers
             return Ok("User created successfully");
         }
 
+            [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(string email, string password)
         {
@@ -79,3 +83,4 @@ namespace MyApi.Controllers
         }
     }
 }
+
